@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+
+  php-app:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    container_name: php-app
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www/html
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - app-network
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  php-adminer:
+    image: adminer
+    container_name: php-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DEFAULT_USERNAME: ${DB_USERNAME}
+      ADMINER_DEFAULT_PASSWORD: ${DB_PASSWORD}
+      ADMINER_DEFAULT_DATABASE: ${DB_DATABASE}
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external:
+      name: app-network
